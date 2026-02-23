@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using NAudio.Wave;
 using TestApp1.Models;
 using TestApp1.Services;
 
@@ -17,6 +18,8 @@ public class MainForm : Form
     private Button _moveDownButton = null!;
     private Label _audioDeviceLabel = null!;
     private ComboBox _audioDeviceComboBox = null!;
+    private Label _microphoneLabel = null!;
+    private ComboBox _microphoneComboBox = null!;
     private Button _openWebButton = null!;
     private int _sortColumn = 0;
     private bool _sortAscending = true;
@@ -29,6 +32,18 @@ public class MainForm : Form
         _settingsService = settingsService;
         InitializeUI();
         LoadButtons();
+
+        var savedDevice = _settingsService.GetSelectedAudioDevice();
+        if (savedDevice.HasValue)
+        {
+            _soundService.SetOutputDevice(savedDevice.Value);
+        }
+
+        var savedMicrophone = _settingsService.GetSelectedMicrophone();
+        if (savedMicrophone.HasValue)
+        {
+            _soundService.SetMicrophoneDevice(savedMicrophone.Value);
+        }
     }
 
     private void InitializeUI()
@@ -134,6 +149,27 @@ public class MainForm : Form
         _audioDeviceComboBox.SelectedIndexChanged += AudioDeviceComboBox_SelectedIndexChanged;
         LoadAudioDevices();
 
+        _microphoneLabel = new Label
+        {
+            Text = "Mikrofon:",
+            Left = 620,
+            Top = 340,
+            Width = 160,
+            Height = 20,
+            Anchor = AnchorStyles.Bottom | AnchorStyles.Right
+        };
+
+        _microphoneComboBox = new ComboBox
+        {
+            Left = 620,
+            Top = 365,
+            Width = 160,
+            DropDownStyle = ComboBoxStyle.DropDownList,
+            Anchor = AnchorStyles.Bottom | AnchorStyles.Right
+        };
+        _microphoneComboBox.SelectedIndexChanged += MicrophoneComboBox_SelectedIndexChanged;
+        LoadMicrophones();
+
         _openWebButton = new Button
         {
             Text = "Weboberfläche öffnen",
@@ -151,6 +187,8 @@ public class MainForm : Form
         Controls.Add(_deleteButton);
         Controls.Add(_moveUpButton);
         Controls.Add(_moveDownButton);
+        Controls.Add(_microphoneLabel);
+        Controls.Add(_microphoneComboBox);
         Controls.Add(_audioDeviceLabel);
         Controls.Add(_audioDeviceComboBox);
         Controls.Add(_openWebButton);
@@ -522,6 +560,43 @@ public class MainForm : Form
             var deviceNumber = _audioDeviceComboBox.SelectedIndex - 1;
             _soundService.SetOutputDevice(deviceNumber);
             _settingsService.SetSelectedAudioDevice(deviceNumber);
+        }
+    }
+
+    private void LoadMicrophones()
+    {
+        _microphoneComboBox.Items.Clear();
+        _microphoneComboBox.Items.Add("(Keines)");
+
+        for (int i = 0; i < WaveInEvent.DeviceCount; i++)
+        {
+            var capabilities = WaveInEvent.GetCapabilities(i);
+            _microphoneComboBox.Items.Add($"{capabilities.ProductName} (#{i})");
+        }
+
+        var savedMicrophone = _settingsService.GetSelectedMicrophone();
+        if (savedMicrophone.HasValue && savedMicrophone.Value >= 0 && savedMicrophone.Value < WaveInEvent.DeviceCount)
+        {
+            _microphoneComboBox.SelectedIndex = savedMicrophone.Value + 1;
+        }
+        else
+        {
+            _microphoneComboBox.SelectedIndex = 0;
+        }
+    }
+
+    private void MicrophoneComboBox_SelectedIndexChanged(object? sender, EventArgs e)
+    {
+        if (_microphoneComboBox.SelectedIndex <= 0)
+        {
+            _soundService.SetMicrophoneDevice(null);
+            _settingsService.SetSelectedMicrophone(null);
+        }
+        else
+        {
+            var deviceNumber = _microphoneComboBox.SelectedIndex - 1;
+            _soundService.SetMicrophoneDevice(deviceNumber);
+            _settingsService.SetSelectedMicrophone(deviceNumber);
         }
     }
 }

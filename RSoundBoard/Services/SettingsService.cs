@@ -64,4 +64,15 @@ public class SettingsService
         _settings.SelectedAudioDeviceNumber = deviceNumber;
         SaveSettings();
     }
+
+    public int? GetSelectedMicrophone()
+    {
+        return _settings.SelectedMicrophoneDeviceNumber;
+    }
+
+    public void SetSelectedMicrophone(int? deviceNumber)
+    {
+        _settings.SelectedMicrophoneDeviceNumber = deviceNumber;
+        SaveSettings();
+    }
 }
