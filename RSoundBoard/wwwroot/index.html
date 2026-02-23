@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Soundboard</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔊 R Soundboard</h1>
+            <button id="stopBtn" class="stop-btn">⏹ Stop</button>
+        </header>
+        <div id="soundboard" class="soundboard"></div>
+    </div>
+
+    <script>
+        let buttons = [];
+
+        async function loadButtons() {
+            const response = await fetch('/api/buttons');
+            buttons = await response.json();
+            renderSoundboard();
+        }
+
+        function renderSoundboard() {
+            const soundboard = document.getElementById('soundboard');
+            soundboard.innerHTML = '';
+
+            const grouped = {};
+            buttons.forEach(btn => {
+                if (!grouped[btn.group]) grouped[btn.group] = [];
+                grouped[btn.group].push(btn);
+            });
+
+            Object.keys(grouped).sort().forEach(group => {
+                const groupSection = document.createElement('div');
+                groupSection.className = 'group-section';
+
+                const groupTitle = document.createElement('h2');
+                groupTitle.textContent = group;
+                groupSection.appendChild(groupTitle);
+
+                const buttonGrid = document.createElement('div');
+                buttonGrid.className = 'button-grid';
+
+                grouped[group].sort((a, b) => a.order - b.order).forEach(btn => {
+                    const soundBtn = document.createElement('button');
+                    soundBtn.className = 'sound-btn';
+                    soundBtn.textContent = btn.label;
+                    soundBtn.onclick = () => playSound(btn.id);
+                    buttonGrid.appendChild(soundBtn);
+                });
+
+                groupSection.appendChild(buttonGrid);
+                soundboard.appendChild(groupSection);
+            });
+        }
+
+        async function playSound(id) {
+            await fetch(`/api/play/${id}`, { method: 'POST' });
+        }
+
+        async function stopSound() {
+            await fetch('/api/stop', { method: 'POST' });
+        }
+
+        document.getElementById('stopBtn').onclick = stopSound;
+
+        loadButtons();
+        setInterval(loadButtons, 5000);
+    </script>
+</body>
+</html>

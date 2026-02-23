@@ -1,0 +1,23 @@
+[
+  {
+    "id": "550e8400-e29b-41d4-a716-446655440000",
+    "label": "Applaus",
+    "filePath": "C:\\Sounds\\applause.wav",
+    "group": "Effekte",
+    "order": 0
+  },
+  {
+    "id": "550e8400-e29b-41d4-a716-446655440001",
+    "label": "Trommelwirbel",
+    "filePath": "C:\\Sounds\\drumroll.mp3",
+    "group": "Effekte",
+    "order": 1
+  },
+  {
+    "id": "550e8400-e29b-41d4-a716-446655440002",
+    "label": "Lachen",
+    "filePath": "C:\\Sounds\\laugh.wav",
+    "group": "Reaktionen",
+    "order": 0
+  }
+]
