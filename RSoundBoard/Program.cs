@@ -11,6 +11,7 @@ class Program
 
         var builder = WebApplication.CreateBuilder(args);
 
+        builder.Services.AddSingleton<SettingsService>();
         builder.Services.AddSingleton<ButtonRepository>();
         builder.Services.AddSingleton<SoundService>();
         builder.Services.AddCors(options =>
@@ -25,6 +26,7 @@ class Program
         app.UseCors();
         app.UseStaticFiles();
 
+        var settingsService = app.Services.GetRequiredService<SettingsService>();
         var repository = app.Services.GetRequiredService<ButtonRepository>();
         var soundService = app.Services.GetRequiredService<SoundService>();
 
@@ -71,7 +73,7 @@ class Program
 
         var webServerTask = Task.Run(() => app.Run());
 
-        Application.Run(new MainForm(repository, soundService));
+        Application.Run(new MainForm(repository, soundService, settingsService));
 
         soundService.Dispose();
         Environment.Exit(0);

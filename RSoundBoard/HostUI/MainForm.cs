@@ -8,6 +8,7 @@ public class MainForm : Form
 {
     private readonly ButtonRepository _repository;
     private readonly SoundService _soundService;
+    private readonly SettingsService _settingsService;
     private ListView _buttonListView = null!;
     private Button _addButton = null!;
     private Button _editButton = null!;
@@ -21,10 +22,11 @@ public class MainForm : Form
     private bool _sortAscending = true;
     private readonly string[] _columnNames = { "Gruppe", "Label", "Dateipfad", "Order" };
 
-    public MainForm(ButtonRepository repository, SoundService soundService)
+    public MainForm(ButtonRepository repository, SoundService soundService, SettingsService settingsService)
     {
         _repository = repository;
         _soundService = soundService;
+        _settingsService = settingsService;
         InitializeUI();
         LoadButtons();
     }
@@ -496,7 +498,16 @@ public class MainForm : Form
             _audioDeviceComboBox.Items.Add($"{capabilities.ProductName} (#{i})");
         }
 
-        _audioDeviceComboBox.SelectedIndex = 0;
+        // Gespeichertes Gerät laden
+        var savedDevice = _settingsService.GetSelectedAudioDevice();
+        if (savedDevice.HasValue && savedDevice.Value >= 0 && savedDevice.Value < NAudio.Wave.WaveOut.DeviceCount)
+        {
+            _audioDeviceComboBox.SelectedIndex = savedDevice.Value + 1;
+        }
+        else
+        {
+            _audioDeviceComboBox.SelectedIndex = 0;
+        }
     }
 
     private void AudioDeviceComboBox_SelectedIndexChanged(object? sender, EventArgs e)
@@ -504,10 +515,13 @@ public class MainForm : Form
         if (_audioDeviceComboBox.SelectedIndex <= 0)
         {
             _soundService.SetOutputDevice(null);
+            _settingsService.SetSelectedAudioDevice(null);
         }
         else
         {
-            _soundService.SetOutputDevice(_audioDeviceComboBox.SelectedIndex - 1);
+            var deviceNumber = _audioDeviceComboBox.SelectedIndex - 1;
+            _soundService.SetOutputDevice(deviceNumber);
+            _settingsService.SetSelectedAudioDevice(deviceNumber);
         }
     }
 }
