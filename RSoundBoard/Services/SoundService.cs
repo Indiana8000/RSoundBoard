@@ -7,6 +7,12 @@ public class SoundService : IDisposable
     private IWavePlayer? _wavePlayer;
     private AudioFileReader? _audioFileReader;
     private readonly SemaphoreSlim _lock = new(1, 1);
+    private int? _deviceNumber = null;
+
+    public void SetOutputDevice(int? deviceNumber)
+    {
+        _deviceNumber = deviceNumber;
+    }
 
     public async Task PlayAsync(string filePath)
     {
@@ -19,7 +25,16 @@ public class SoundService : IDisposable
                 return;
 
             _audioFileReader = new AudioFileReader(filePath);
-            _wavePlayer = new WaveOutEvent();
+
+            if (_deviceNumber.HasValue)
+            {
+                _wavePlayer = new WaveOutEvent { DeviceNumber = _deviceNumber.Value };
+            }
+            else
+            {
+                _wavePlayer = new WaveOutEvent();
+            }
+
             _wavePlayer.Init(_audioFileReader);
             _wavePlayer.Play();
         }

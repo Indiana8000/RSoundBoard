@@ -14,6 +14,8 @@ public class MainForm : Form
     private Button _deleteButton = null!;
     private Button _moveUpButton = null!;
     private Button _moveDownButton = null!;
+    private Label _audioDeviceLabel = null!;
+    private ComboBox _audioDeviceComboBox = null!;
     private Button _openWebButton = null!;
     private int _sortColumn = 0;
     private bool _sortAscending = true;
@@ -109,6 +111,27 @@ public class MainForm : Form
         };
         _moveDownButton.Click += MoveDownButton_Click;
 
+        _audioDeviceLabel = new Label
+        {
+            Text = "Audio-Ausgabegerät:",
+            Left = 620,
+            Top = 390,
+            Width = 160,
+            Height = 20,
+            Anchor = AnchorStyles.Bottom | AnchorStyles.Right
+        };
+
+        _audioDeviceComboBox = new ComboBox
+        {
+            Left = 620,
+            Top = 415,
+            Width = 160,
+            DropDownStyle = ComboBoxStyle.DropDownList,
+            Anchor = AnchorStyles.Bottom | AnchorStyles.Right
+        };
+        _audioDeviceComboBox.SelectedIndexChanged += AudioDeviceComboBox_SelectedIndexChanged;
+        LoadAudioDevices();
+
         _openWebButton = new Button
         {
             Text = "Weboberfläche öffnen",
@@ -126,6 +149,8 @@ public class MainForm : Form
         Controls.Add(_deleteButton);
         Controls.Add(_moveUpButton);
         Controls.Add(_moveDownButton);
+        Controls.Add(_audioDeviceLabel);
+        Controls.Add(_audioDeviceComboBox);
         Controls.Add(_openWebButton);
     }
 
@@ -457,6 +482,32 @@ public class MainForm : Form
         catch (Exception ex)
         {
             MessageBox.Show($"Fehler beim Abspielen der Datei: {ex.Message}", "Fehler", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
+    }
+
+    private void LoadAudioDevices()
+    {
+        _audioDeviceComboBox.Items.Clear();
+        _audioDeviceComboBox.Items.Add("(Standard)");
+
+        for (int i = 0; i < NAudio.Wave.WaveOut.DeviceCount; i++)
+        {
+            var capabilities = NAudio.Wave.WaveOut.GetCapabilities(i);
+            _audioDeviceComboBox.Items.Add($"{capabilities.ProductName} (#{i})");
+        }
+
+        _audioDeviceComboBox.SelectedIndex = 0;
+    }
+
+    private void AudioDeviceComboBox_SelectedIndexChanged(object? sender, EventArgs e)
+    {
+        if (_audioDeviceComboBox.SelectedIndex <= 0)
+        {
+            _soundService.SetOutputDevice(null);
+        }
+        else
+        {
+            _soundService.SetOutputDevice(_audioDeviceComboBox.SelectedIndex - 1);
         }
     }
 }
