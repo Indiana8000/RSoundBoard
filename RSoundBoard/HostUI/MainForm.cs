@@ -48,11 +48,19 @@ public class MainForm : Form
 
     private void InitializeUI()
     {
-        Text = "Soundboard Manager";
+        Text = "R Soundboard Manager";
         Width = 800;
         Height = 560;
         MinimumSize = new Size(800, 560);
         StartPosition = FormStartPosition.CenterScreen;
+
+        try
+        {
+            Icon = new Icon("RSoundBoard.ico");
+        }
+        catch
+        {
+        }
 
         _buttonListView = new ListView
         {
