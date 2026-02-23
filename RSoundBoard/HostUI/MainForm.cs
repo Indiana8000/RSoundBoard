@@ -7,14 +7,14 @@ namespace TestApp1.HostUI;
 public class MainForm : Form
 {
     private readonly ButtonRepository _repository;
-    private ListView _buttonListView;
-    private Button _addButton;
-    private Button _editButton;
-    private Button _deleteButton;
-    private Button _moveUpButton;
-    private Button _moveDownButton;
-    private Button _openWebButton;
-    private int _sortColumn = -1;
+    private ListView _buttonListView = null!;
+    private Button _addButton = null!;
+    private Button _editButton = null!;
+    private Button _deleteButton = null!;
+    private Button _moveUpButton = null!;
+    private Button _moveDownButton = null!;
+    private Button _openWebButton = null!;
+    private int _sortColumn = 0;
     private bool _sortAscending = true;
     private readonly string[] _columnNames = { "Gruppe", "Label", "Dateipfad", "Order" };
 
@@ -123,7 +123,10 @@ public class MainForm : Form
         var buttons = await _repository.GetAllAsync();
         _buttonListView.Items.Clear();
 
-        foreach (var button in buttons.OrderBy(b => b.Group).ThenBy(b => b.Order))
+        // Standard-Sortierung: erst nach Gruppe, dann nach Order
+        var sortedButtons = buttons.OrderBy(b => b.Group).ThenBy(b => b.Order).ToList();
+
+        foreach (var button in sortedButtons)
         {
             var item = new ListViewItem(button.Group);
             item.SubItems.Add(button.Label);
@@ -132,24 +135,33 @@ public class MainForm : Form
             item.Tag = button;
             _buttonListView.Items.Add(item);
         }
+
+        // Spaltenüberschriften aktualisieren, um aktuelle Sortierung anzuzeigen
+        UpdateColumnHeaders();
     }
 
     private async void AddButton_Click(object? sender, EventArgs e)
     {
-        // Bestimme die höchste Order-Nummer
         var buttons = await _repository.GetAllAsync();
-        var maxOrder = buttons.Any() ? buttons.Max(b => b.Order) : -1;
+        var defaultGroup = "Default";
+
+        // Bestimme die höchste Order-Nummer in der Default-Gruppe
+        var maxOrder = buttons.Where(b => b.Group == defaultGroup).Any() 
+            ? buttons.Where(b => b.Group == defaultGroup).Max(b => b.Order) 
+            : -1;
 
         var newButton = new SoundButton
         {
             Order = maxOrder + 1,
-            Group = "Default"
+            Group = defaultGroup
         };
 
         using var dialog = new ButtonEditDialog(newButton);
         if (dialog.ShowDialog() == DialogResult.OK)
         {
+            // Nach dem Hinzufügen die Gruppe normalisieren
             await _repository.AddAsync(dialog.Button);
+            await NormalizeGroupOrders(dialog.Button.Group);
             LoadButtons();
         }
     }
@@ -160,51 +172,20 @@ public class MainForm : Form
             return;
 
         var oldGroup = button.Group;
-        var oldOrder = button.Order;
 
         using var dialog = new ButtonEditDialog(button);
         if (dialog.ShowDialog() == DialogResult.OK)
         {
-            var allButtons = await _repository.GetAllAsync();
             var editedButton = dialog.Button;
-
-            // Wenn Gruppe oder Order geändert wurde, Order-Nummern neu organisieren
-            if (editedButton.Group != oldGroup || editedButton.Order != oldOrder)
-            {
-                // Alle Buttons der Zielgruppe, außer dem bearbeiteten
-                var targetGroupButtons = allButtons
-                    .Where(b => b.Group == editedButton.Group && b.Id != button.Id)
-                    .OrderBy(b => b.Order)
-                    .ToList();
-
-                // Wenn ein anderer Button bereits die gewünschte Order-Nummer hat
-                if (targetGroupButtons.Any(b => b.Order == editedButton.Order))
-                {
-                    // Alle Buttons ab der neuen Position nach hinten verschieben
-                    foreach (var btn in targetGroupButtons.Where(b => b.Order >= editedButton.Order))
-                    {
-                        btn.Order++;
-                        await _repository.UpdateAsync(btn.Id, btn);
-                    }
-                }
-
-                // Alte Gruppe aufräumen, falls die Gruppe gewechselt wurde
-                if (editedButton.Group != oldGroup)
-                {
-                    var oldGroupButtons = allButtons
-                        .Where(b => b.Group == oldGroup && b.Id != button.Id && b.Order > oldOrder)
-                        .OrderBy(b => b.Order)
-                        .ToList();
-
-                    foreach (var btn in oldGroupButtons)
-                    {
-                        btn.Order--;
-                        await _repository.UpdateAsync(btn.Id, btn);
-                    }
-                }
-            }
-
             await _repository.UpdateAsync(button.Id, editedButton);
+
+            // Beide Gruppen normalisieren (alte und neue, falls gewechselt)
+            if (editedButton.Group != oldGroup)
+            {
+                await NormalizeGroupOrders(oldGroup);
+            }
+            await NormalizeGroupOrders(editedButton.Group);
+
             LoadButtons();
         }
     }
@@ -222,7 +203,9 @@ public class MainForm : Form
 
         if (result == DialogResult.Yes)
         {
+            var groupToNormalize = button.Group;
             await _repository.DeleteAsync(button.Id);
+            await NormalizeGroupOrders(groupToNormalize);
             LoadButtons();
         }
     }
@@ -252,8 +235,12 @@ public class MainForm : Form
         // Buttons aktualisieren
         await _repository.UpdateAsync(button.Id, button);
         await _repository.UpdateAsync(previousButton.Id, previousButton);
+        await NormalizeGroupOrders(button.Group);
 
         LoadButtons();
+
+        // Den verschobenen Button wieder auswählen
+        SelectButtonById(button.Id);
     }
 
     private async void MoveDownButton_Click(object? sender, EventArgs e)
@@ -281,8 +268,12 @@ public class MainForm : Form
         // Buttons aktualisieren
         await _repository.UpdateAsync(button.Id, button);
         await _repository.UpdateAsync(nextButton.Id, nextButton);
+        await NormalizeGroupOrders(button.Group);
 
         LoadButtons();
+
+        // Den verschobenen Button wieder auswählen
+        SelectButtonById(button.Id);
     }
 
     private void OpenWebButton_Click(object? sender, EventArgs e)
@@ -317,6 +308,8 @@ public class MainForm : Form
     {
         if (e.Data?.GetData(DataFormats.FileDrop) is string[] files)
         {
+            var defaultGroup = "Default";
+
             foreach (var filePath in files)
             {
                 // Nur Audio-Dateien verarbeiten
@@ -325,15 +318,17 @@ public class MainForm : Form
                 {
                     var fileName = Path.GetFileNameWithoutExtension(filePath);
 
-                    // Bestimme die höchste Order-Nummer
+                    // Bestimme die höchste Order-Nummer in der Default-Gruppe
                     var buttons = await _repository.GetAllAsync();
-                    var maxOrder = buttons.Any() ? buttons.Max(b => b.Order) : -1;
+                    var maxOrder = buttons.Where(b => b.Group == defaultGroup).Any() 
+                        ? buttons.Where(b => b.Group == defaultGroup).Max(b => b.Order) 
+                        : -1;
 
                     var newButton = new SoundButton
                     {
                         Label = fileName,
                         FilePath = filePath,
-                        Group = "Default",
+                        Group = defaultGroup,
                         Order = maxOrder + 1
                     };
 
@@ -341,6 +336,7 @@ public class MainForm : Form
                 }
             }
 
+            await NormalizeGroupOrders(defaultGroup);
             LoadButtons();
         }
     }
@@ -396,6 +392,44 @@ public class MainForm : Form
             else
             {
                 _buttonListView.Columns[i].Text = _columnNames[i];
+            }
+        }
+    }
+
+    /// <summary>
+    /// Normalisiert die Order-Nummern einer Gruppe, sodass sie bei 0 beginnen und keine Lücken haben
+    /// </summary>
+    private async Task NormalizeGroupOrders(string groupName)
+    {
+        var allButtons = await _repository.GetAllAsync();
+        var groupButtons = allButtons
+            .Where(b => b.Group == groupName)
+            .OrderBy(b => b.Order)
+            .ToList();
+
+        for (int i = 0; i < groupButtons.Count; i++)
+        {
+            if (groupButtons[i].Order != i)
+            {
+                groupButtons[i].Order = i;
+                await _repository.UpdateAsync(groupButtons[i].Id, groupButtons[i]);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Wählt einen Button in der ListView anhand seiner ID aus
+    /// </summary>
+    private void SelectButtonById(Guid buttonId)
+    {
+        foreach (ListViewItem item in _buttonListView.Items)
+        {
+            if (item.Tag is SoundButton button && button.Id == buttonId)
+            {
+                item.Selected = true;
+                item.Focused = true;
+                item.EnsureVisible();
+                break;
             }
         }
     }

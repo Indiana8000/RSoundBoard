@@ -4,13 +4,13 @@ namespace TestApp1.HostUI;
 
 public class ButtonEditDialog : Form
 {
-    private TextBox _labelTextBox;
-    private TextBox _filePathTextBox;
-    private Button _browseButton;
-    private TextBox _groupTextBox;
-    private NumericUpDown _orderNumeric;
-    private Button _okButton;
-    private Button _cancelButton;
+    private TextBox _labelTextBox = null!;
+    private TextBox _filePathTextBox = null!;
+    private Button _browseButton = null!;
+    private TextBox _groupTextBox = null!;
+    private NumericUpDown _orderNumeric = null!;
+    private Button _okButton = null!;
+    private Button _cancelButton = null!;
 
     public SoundButton Button { get; private set; }
 
