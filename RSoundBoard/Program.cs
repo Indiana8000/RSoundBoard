@@ -71,7 +71,7 @@ class Program
 
         var webServerTask = Task.Run(() => app.Run());
 
-        Application.Run(new MainForm(repository));
+        Application.Run(new MainForm(repository, soundService));
 
         soundService.Dispose();
         Environment.Exit(0);

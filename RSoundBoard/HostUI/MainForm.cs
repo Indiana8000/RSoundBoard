@@ -7,6 +7,7 @@ namespace TestApp1.HostUI;
 public class MainForm : Form
 {
     private readonly ButtonRepository _repository;
+    private readonly SoundService _soundService;
     private ListView _buttonListView = null!;
     private Button _addButton = null!;
     private Button _editButton = null!;
@@ -18,9 +19,10 @@ public class MainForm : Form
     private bool _sortAscending = true;
     private readonly string[] _columnNames = { "Gruppe", "Label", "Dateipfad", "Order" };
 
-    public MainForm(ButtonRepository repository)
+    public MainForm(ButtonRepository repository, SoundService soundService)
     {
         _repository = repository;
+        _soundService = soundService;
         InitializeUI();
         LoadButtons();
     }
@@ -29,7 +31,8 @@ public class MainForm : Form
     {
         Text = "Soundboard Manager";
         Width = 800;
-        Height = 600;
+        Height = 560;
+        MinimumSize = new Size(800, 560);
         StartPosition = FormStartPosition.CenterScreen;
 
         _buttonListView = new ListView
@@ -41,7 +44,8 @@ public class MainForm : Form
             View = View.Details,
             FullRowSelect = true,
             GridLines = true,
-            AllowDrop = true
+            AllowDrop = true,
+            Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Bottom
         };
 
         // Spalten hinzufügen
@@ -51,6 +55,7 @@ public class MainForm : Form
         _buttonListView.Columns.Add("Order", 80);
 
         _buttonListView.ColumnClick += ButtonListView_ColumnClick;
+        _buttonListView.DoubleClick += ButtonListView_DoubleClick;
         _buttonListView.DragEnter += ButtonListBox_DragEnter;
         _buttonListView.DragDrop += ButtonListBox_DragDrop;
 
@@ -59,7 +64,8 @@ public class MainForm : Form
             Text = "Hinzufügen",
             Left = 620,
             Top = 10,
-            Width = 160
+            Width = 160,
+            Anchor = AnchorStyles.Top | AnchorStyles.Right
         };
         _addButton.Click += AddButton_Click;
 
@@ -68,7 +74,8 @@ public class MainForm : Form
             Text = "Bearbeiten",
             Left = 620,
             Top = 50,
-            Width = 160
+            Width = 160,
+            Anchor = AnchorStyles.Top | AnchorStyles.Right
         };
         _editButton.Click += EditButton_Click;
 
@@ -77,7 +84,8 @@ public class MainForm : Form
             Text = "Löschen",
             Left = 620,
             Top = 90,
-            Width = 160
+            Width = 160,
+            Anchor = AnchorStyles.Top | AnchorStyles.Right
         };
         _deleteButton.Click += DeleteButton_Click;
 
@@ -86,7 +94,8 @@ public class MainForm : Form
             Text = "↑ Nach oben",
             Left = 620,
             Top = 140,
-            Width = 160
+            Width = 160,
+            Anchor = AnchorStyles.Top | AnchorStyles.Right
         };
         _moveUpButton.Click += MoveUpButton_Click;
 
@@ -95,7 +104,8 @@ public class MainForm : Form
             Text = "↓ Nach unten",
             Left = 620,
             Top = 180,
-            Width = 160
+            Width = 160,
+            Anchor = AnchorStyles.Top | AnchorStyles.Right
         };
         _moveDownButton.Click += MoveDownButton_Click;
 
@@ -105,7 +115,8 @@ public class MainForm : Form
             Left = 620,
             Top = 470,
             Width = 160,
-            Height = 40
+            Height = 40,
+            Anchor = AnchorStyles.Bottom | AnchorStyles.Right
         };
         _openWebButton.Click += OpenWebButton_Click;
 
@@ -431,6 +442,21 @@ public class MainForm : Form
                 item.EnsureVisible();
                 break;
             }
+        }
+    }
+
+    private async void ButtonListView_DoubleClick(object? sender, EventArgs e)
+    {
+        if (_buttonListView.SelectedItems.Count == 0 || _buttonListView.SelectedItems[0].Tag is not SoundButton button)
+            return;
+
+        try
+        {
+            await _soundService.PlayAsync(button.FilePath);
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"Fehler beim Abspielen der Datei: {ex.Message}", "Fehler", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
     }
 }
