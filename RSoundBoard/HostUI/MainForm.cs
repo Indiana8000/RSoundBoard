@@ -39,6 +39,10 @@ public class MainForm : Form
         MinimumSize = new Size(800, 560);
         StartPosition = FormStartPosition.CenterScreen;
 
+        var iconPath = Path.Combine(AppContext.BaseDirectory, "app.ico");
+        if (File.Exists(iconPath))
+            Icon = new Icon(iconPath);
+
         _buttonListView = new ListView
         {
             Left = 10,
