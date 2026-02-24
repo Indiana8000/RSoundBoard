@@ -1,6 +1,8 @@
 using TestApp1.HostUI;
 using TestApp1.Models;
 using TestApp1.Services;
+using Microsoft.Extensions.FileProviders;
+using System.Reflection;
 
 class Program
 {
@@ -24,7 +26,13 @@ class Program
         var app = builder.Build();
 
         app.UseCors();
-        app.UseStaticFiles();
+
+        // Verwende eingebettete Dateien für SingleFile-Deployment
+        var embeddedProvider = new ManifestEmbeddedFileProvider(Assembly.GetExecutingAssembly(), "wwwroot");
+        app.UseStaticFiles(new StaticFileOptions
+        {
+            FileProvider = embeddedProvider
+        });
 
         var settingsService = app.Services.GetRequiredService<SettingsService>();
         var repository = app.Services.GetRequiredService<ButtonRepository>();

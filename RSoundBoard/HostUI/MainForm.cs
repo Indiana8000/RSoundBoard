@@ -56,7 +56,12 @@ public class MainForm : Form
 
         try
         {
-            Icon = new Icon("RSoundBoard.ico");
+            var assembly = System.Reflection.Assembly.GetExecutingAssembly();
+            using var stream = assembly.GetManifestResourceStream("RSoundBoard.RSoundBoard.ico");
+            if (stream != null)
+            {
+                Icon = new Icon(stream);
+            }
         }
         catch
         {

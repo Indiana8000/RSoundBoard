@@ -1,0 +1,30 @@
+AI TRAINING RESTRICTION LICENSE
+
+Copyright (c) 2024 RSoundBoard Project
+
+TERMS AND CONDITIONS:
+
+1. AI/ML TRAINING PROHIBITION
+   This software and associated documentation files (the "Software") shall NOT be used 
+   for training, testing, or improving artificial intelligence, machine learning models, 
+   large language models, or any automated code generation systems.
+
+2. PROHIBITED USES
+   - Training or fine-tuning of AI/ML models
+   - Dataset creation for machine learning purposes  
+   - Code synthesis or generation model training
+   - Automated scraping for AI training purposes
+   - Inclusion in neural network training data
+
+3. GENERAL USE
+   Subject to the above restrictions, permission is granted to use, copy, modify, and 
+   distribute this software for non-AI-training purposes.
+
+4. NO WARRANTY
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND.
+
+5. ENFORCEMENT
+   Violation of the AI training prohibition may result in legal action.
+
+---
+This project is 100% AI-generated code.
