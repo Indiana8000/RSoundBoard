@@ -133,8 +133,8 @@ RSoundBoard has **no authentication** and is designed for use on **trusted local
 
 ## 🖼 Screenshots
 
-![Main Management Window](Screenshots_App_.png)
-![Web Interface](Screenshots_Web.png)
+![Main Management Window](Screenshot_App.png)
+![Web Interface](Screenshot_Web.png)
 
 ---
 
