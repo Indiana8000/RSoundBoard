@@ -122,7 +122,7 @@ RSoundBoard has **no authentication** and is designed for use on **trusted local
 
 ## 📂 File Locations
 
-- **Configuration File**: `soundboard_data.json` (created in the same folder as the .exe)
+- **Configuration File**: `%APPDATA%\RSoundBoard\soundboard_data.json`
 - **Sound Files**: Stored wherever you choose; the configuration only saves the path
 
 ## 💡 Tips & Tricks
