@@ -27,7 +27,7 @@ class Program
 
         app.UseCors();
 
-        // Verwende eingebettete Dateien für SingleFile-Deployment
+        // Use embedded files for single-file deployment
         var embeddedProvider = new ManifestEmbeddedFileProvider(Assembly.GetExecutingAssembly(), "wwwroot");
         app.UseStaticFiles(new StaticFileOptions
         {

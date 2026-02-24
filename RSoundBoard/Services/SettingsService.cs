@@ -32,7 +32,7 @@ public class SettingsService
         }
         catch
         {
-            // Bei Fehler Standard-Einstellungen verwenden
+            // Use default settings on error
         }
 
         return new AppSettings();
@@ -50,7 +50,7 @@ public class SettingsService
         }
         catch
         {
-            // Fehler beim Speichern ignorieren
+            // Ignore save errors
         }
     }
 

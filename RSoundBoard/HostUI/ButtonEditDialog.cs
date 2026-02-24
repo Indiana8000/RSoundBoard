@@ -33,7 +33,7 @@ public class ButtonEditDialog : Form
 
     private void InitializeUI()
     {
-        Text = "Button bearbeiten";
+        Text = "Edit Button";
         Width = 500;
         Height = 280;
         StartPosition = FormStartPosition.CenterParent;
@@ -44,17 +44,17 @@ public class ButtonEditDialog : Form
         var labelLabel = new Label { Text = "Label:", Left = 10, Top = 20, Width = 100 };
         _labelTextBox = new TextBox { Left = 120, Top = 17, Width = 350 };
 
-        var fileLabel = new Label { Text = "Datei:", Left = 10, Top = 60, Width = 100 };
+        var fileLabel = new Label { Text = "File:", Left = 10, Top = 60, Width = 100 };
         _filePathTextBox = new TextBox { Left = 120, Top = 57, Width = 270, AllowDrop = true };
         _filePathTextBox.DragEnter += FilePathTextBox_DragEnter;
         _filePathTextBox.DragDrop += FilePathTextBox_DragDrop;
         _browseButton = new Button { Text = "...", Left = 400, Top = 55, Width = 70 };
         _browseButton.Click += BrowseButton_Click;
 
-        var groupLabel = new Label { Text = "Gruppe:", Left = 10, Top = 100, Width = 100 };
+        var groupLabel = new Label { Text = "Group:", Left = 10, Top = 100, Width = 100 };
         _groupTextBox = new TextBox { Left = 120, Top = 97, Width = 350 };
 
-        var orderLabel = new Label { Text = "Reihenfolge:", Left = 10, Top = 140, Width = 100 };
+        var orderLabel = new Label { Text = "Order:", Left = 10, Top = 140, Width = 100 };
         _orderNumeric = new NumericUpDown { Left = 120, Top = 137, Width = 100, Minimum = 0, Maximum = 9999 };
 
         _okButton = new Button
@@ -69,7 +69,7 @@ public class ButtonEditDialog : Form
 
         _cancelButton = new Button
         {
-            Text = "Abbrechen",
+            Text = "Cancel",
             Left = 380,
             Top = 200,
             Width = 100,
@@ -101,8 +101,8 @@ public class ButtonEditDialog : Form
     {
         using var openFileDialog = new OpenFileDialog
         {
-            Filter = "Audio-Dateien|*.wav;*.mp3|Alle Dateien|*.*",
-            Title = "Sound-Datei auswählen"
+            Filter = "Audio Files|*.wav;*.mp3|All Files|*.*",
+            Title = "Select Sound File"
         };
 
         if (openFileDialog.ShowDialog() == DialogResult.OK)
@@ -130,7 +130,7 @@ public class ButtonEditDialog : Form
             var filePath = files[0];
             _filePathTextBox.Text = filePath;
 
-            // Wenn das Label-Feld leer ist, setze den Dateinamen (ohne Erweiterung) als Label
+            // If label field is empty, set filename (without extension) as label
             if (string.IsNullOrWhiteSpace(_labelTextBox.Text))
             {
                 _labelTextBox.Text = Path.GetFileNameWithoutExtension(filePath);
@@ -142,14 +142,14 @@ public class ButtonEditDialog : Form
     {
         if (string.IsNullOrWhiteSpace(_labelTextBox.Text))
         {
-            MessageBox.Show("Bitte geben Sie ein Label ein.", "Fehler", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            MessageBox.Show("Please enter a label.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             DialogResult = DialogResult.None;
             return;
         }
 
         if (string.IsNullOrWhiteSpace(_filePathTextBox.Text))
         {
-            MessageBox.Show("Bitte wählen Sie eine Datei aus.", "Fehler", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            MessageBox.Show("Please select a file.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             DialogResult = DialogResult.None;
             return;
         }

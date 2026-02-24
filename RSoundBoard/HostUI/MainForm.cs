@@ -23,7 +23,7 @@ public class MainForm : Form
     private Button _openWebButton = null!;
     private int _sortColumn = 0;
     private bool _sortAscending = true;
-    private readonly string[] _columnNames = { "Gruppe", "Label", "Dateipfad", "Order" };
+    private readonly string[] _columnNames = { "Group", "Label", "File Path", "Order" };
 
     public MainForm(ButtonRepository repository, SoundService soundService, SettingsService settingsService)
     {
@@ -80,10 +80,10 @@ public class MainForm : Form
             Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Bottom
         };
 
-        // Spalten hinzufügen
-        _buttonListView.Columns.Add("Gruppe", 100);
+        // Add columns
+        _buttonListView.Columns.Add("Group", 100);
         _buttonListView.Columns.Add("Label", 150);
-        _buttonListView.Columns.Add("Dateipfad", 250);
+        _buttonListView.Columns.Add("File Path", 250);
         _buttonListView.Columns.Add("Order", 80);
 
         _buttonListView.ColumnClick += ButtonListView_ColumnClick;
@@ -93,7 +93,7 @@ public class MainForm : Form
 
         _addButton = new Button
         {
-            Text = "Hinzufügen",
+            Text = "Add",
             Left = 620,
             Top = 10,
             Width = 160,
@@ -103,7 +103,7 @@ public class MainForm : Form
 
         _editButton = new Button
         {
-            Text = "Bearbeiten",
+            Text = "Edit",
             Left = 620,
             Top = 50,
             Width = 160,
@@ -113,7 +113,7 @@ public class MainForm : Form
 
         _deleteButton = new Button
         {
-            Text = "Löschen",
+            Text = "Delete",
             Left = 620,
             Top = 90,
             Width = 160,
@@ -123,7 +123,7 @@ public class MainForm : Form
 
         _moveUpButton = new Button
         {
-            Text = "↑ Nach oben",
+            Text = "↑ Move Up",
             Left = 620,
             Top = 140,
             Width = 160,
@@ -133,7 +133,7 @@ public class MainForm : Form
 
         _moveDownButton = new Button
         {
-            Text = "↓ Nach unten",
+            Text = "↓ Move Down",
             Left = 620,
             Top = 180,
             Width = 160,
@@ -143,7 +143,7 @@ public class MainForm : Form
 
         _audioDeviceLabel = new Label
         {
-            Text = "Audio-Ausgabegerät:",
+            Text = "Audio Output Device:",
             Left = 620,
             Top = 390,
             Width = 160,
@@ -164,7 +164,7 @@ public class MainForm : Form
 
         _microphoneLabel = new Label
         {
-            Text = "Mikrofon:",
+            Text = "Microphone:",
             Left = 620,
             Top = 340,
             Width = 160,
@@ -185,7 +185,7 @@ public class MainForm : Form
 
         _openWebButton = new Button
         {
-            Text = "Weboberfläche öffnen",
+            Text = "Open Web Interface",
             Left = 620,
             Top = 470,
             Width = 160,
@@ -212,7 +212,7 @@ public class MainForm : Form
         var buttons = await _repository.GetAllAsync();
         _buttonListView.Items.Clear();
 
-        // Standard-Sortierung: erst nach Gruppe, dann nach Order
+        // Default sorting: first by group, then by order
         var sortedButtons = buttons.OrderBy(b => b.Group).ThenBy(b => b.Order).ToList();
 
         foreach (var button in sortedButtons)
@@ -225,7 +225,7 @@ public class MainForm : Form
             _buttonListView.Items.Add(item);
         }
 
-        // Spaltenüberschriften aktualisieren, um aktuelle Sortierung anzuzeigen
+        // Update column headers to show current sort order
         UpdateColumnHeaders();
     }
 
@@ -234,8 +234,8 @@ public class MainForm : Form
         var buttons = await _repository.GetAllAsync();
         var defaultGroup = "Default";
 
-        // Bestimme die höchste Order-Nummer in der Default-Gruppe
-        var maxOrder = buttons.Where(b => b.Group == defaultGroup).Any() 
+        // Determine the highest order number in the Default group
+        var maxOrder = buttons.Where(b => b.Group == defaultGroup).Any()
             ? buttons.Where(b => b.Group == defaultGroup).Max(b => b.Order) 
             : -1;
 
@@ -248,7 +248,7 @@ public class MainForm : Form
         using var dialog = new ButtonEditDialog(newButton);
         if (dialog.ShowDialog() == DialogResult.OK)
         {
-            // Nach dem Hinzufügen die Gruppe normalisieren
+            // Normalize the group after adding
             await _repository.AddAsync(dialog.Button);
             await NormalizeGroupOrders(dialog.Button.Group);
             LoadButtons();
@@ -268,7 +268,7 @@ public class MainForm : Form
             var editedButton = dialog.Button;
             await _repository.UpdateAsync(button.Id, editedButton);
 
-            // Beide Gruppen normalisieren (alte und neue, falls gewechselt)
+            // Normalize both groups (old and new, if switched)
             if (editedButton.Group != oldGroup)
             {
                 await NormalizeGroupOrders(oldGroup);
@@ -285,8 +285,8 @@ public class MainForm : Form
             return;
 
         var result = MessageBox.Show(
-            $"Button '{button.Label}' wirklich löschen?",
-            "Bestätigung",
+            $"Really delete button '{button.Label}'?",
+            "Confirmation",
             MessageBoxButtons.YesNo,
             MessageBoxIcon.Question);
 
@@ -308,27 +308,27 @@ public class MainForm : Form
         var button = allButtons.FirstOrDefault(b => b.Id == selectedButton.Id);
         if (button == null) return;
 
-        // Alle Buttons der gleichen Gruppe, sortiert nach Order
+        // All buttons of the same group, sorted by order
         var groupButtons = allButtons
             .Where(b => b.Group == button.Group)
             .OrderBy(b => b.Order)
             .ToList();
 
         var currentIndex = groupButtons.FindIndex(b => b.Id == button.Id);
-        if (currentIndex <= 0) return; // Schon am Anfang
+        if (currentIndex <= 0) return; // Already at the beginning
 
-        // Tausche Position mit dem vorherigen Button
+        // Swap position with the previous button
         var previousButton = groupButtons[currentIndex - 1];
         (button.Order, previousButton.Order) = (previousButton.Order, button.Order);
 
-        // Buttons aktualisieren
+        // Update buttons
         await _repository.UpdateAsync(button.Id, button);
         await _repository.UpdateAsync(previousButton.Id, previousButton);
         await NormalizeGroupOrders(button.Group);
 
         LoadButtons();
 
-        // Den verschobenen Button wieder auswählen
+        // Select the moved button again
         SelectButtonById(button.Id);
     }
 
@@ -341,16 +341,16 @@ public class MainForm : Form
         var button = allButtons.FirstOrDefault(b => b.Id == selectedButton.Id);
         if (button == null) return;
 
-        // Alle Buttons der gleichen Gruppe, sortiert nach Order
+        // All buttons of the same group, sorted by order
         var groupButtons = allButtons
             .Where(b => b.Group == button.Group)
             .OrderBy(b => b.Order)
             .ToList();
 
         var currentIndex = groupButtons.FindIndex(b => b.Id == button.Id);
-        if (currentIndex >= groupButtons.Count - 1) return; // Schon am Ende
+        if (currentIndex >= groupButtons.Count - 1) return; // Already at the end
 
-        // Tausche Position mit dem nächsten Button
+        // Swap position with the next button
         var nextButton = groupButtons[currentIndex + 1];
         (button.Order, nextButton.Order) = (nextButton.Order, button.Order);
 
@@ -377,7 +377,7 @@ public class MainForm : Form
         }
         catch (Exception ex)
         {
-            MessageBox.Show($"Fehler beim Öffnen des Browsers: {ex.Message}", "Fehler", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            MessageBox.Show($"Error opening browser: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
     }
 
@@ -401,13 +401,13 @@ public class MainForm : Form
 
             foreach (var filePath in files)
             {
-                // Nur Audio-Dateien verarbeiten
+                // Only process audio files
                 var extension = Path.GetExtension(filePath).ToLower();
                 if (extension == ".wav" || extension == ".mp3" || extension == ".ogg" || extension == ".flac")
                 {
                     var fileName = Path.GetFileNameWithoutExtension(filePath);
 
-                    // Bestimme die höchste Order-Nummer in der Default-Gruppe
+                    // Determine the highest order number in the Default group
                     var buttons = await _repository.GetAllAsync();
                     var maxOrder = buttons.Where(b => b.Group == defaultGroup).Any() 
                         ? buttons.Where(b => b.Group == defaultGroup).Max(b => b.Order) 
@@ -432,7 +432,7 @@ public class MainForm : Form
 
     private void ButtonListView_ColumnClick(object? sender, ColumnClickEventArgs e)
     {
-        // Wenn auf die gleiche Spalte geklickt wird, Sortierreihenfolge umkehren
+        // If clicking on the same column, reverse sort order
         if (e.Column == _sortColumn)
         {
             _sortAscending = !_sortAscending;
@@ -443,7 +443,7 @@ public class MainForm : Form
             _sortAscending = true;
         }
 
-        // Spaltenüberschriften aktualisieren
+        // Update column headers
         UpdateColumnHeaders();
 
         var items = _buttonListView.Items.Cast<ListViewItem>().ToList();
@@ -486,7 +486,7 @@ public class MainForm : Form
     }
 
     /// <summary>
-    /// Normalisiert die Order-Nummern einer Gruppe, sodass sie bei 0 beginnen und keine Lücken haben
+    /// Normalizes the order numbers of a group, so they start at 0 and have no gaps
     /// </summary>
     private async Task NormalizeGroupOrders(string groupName)
     {
@@ -507,7 +507,7 @@ public class MainForm : Form
     }
 
     /// <summary>
-    /// Wählt einen Button in der ListView anhand seiner ID aus
+    /// Selects a button in the ListView by its ID
     /// </summary>
     private void SelectButtonById(Guid buttonId)
     {
@@ -534,14 +534,14 @@ public class MainForm : Form
         }
         catch (Exception ex)
         {
-            MessageBox.Show($"Fehler beim Abspielen der Datei: {ex.Message}", "Fehler", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            MessageBox.Show($"Error playing file: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
     }
 
     private void LoadAudioDevices()
     {
         _audioDeviceComboBox.Items.Clear();
-        _audioDeviceComboBox.Items.Add("(Standard)");
+        _audioDeviceComboBox.Items.Add("(Default)");
 
         for (int i = 0; i < NAudio.Wave.WaveOut.DeviceCount; i++)
         {
@@ -549,7 +549,7 @@ public class MainForm : Form
             _audioDeviceComboBox.Items.Add($"{capabilities.ProductName} (#{i})");
         }
 
-        // Gespeichertes Gerät laden
+        // Load saved device
         var savedDevice = _settingsService.GetSelectedAudioDevice();
         if (savedDevice.HasValue && savedDevice.Value >= 0 && savedDevice.Value < NAudio.Wave.WaveOut.DeviceCount)
         {
@@ -579,7 +579,7 @@ public class MainForm : Form
     private void LoadMicrophones()
     {
         _microphoneComboBox.Items.Clear();
-        _microphoneComboBox.Items.Add("(Keines)");
+        _microphoneComboBox.Items.Add("(None)");
 
         for (int i = 0; i < WaveInEvent.DeviceCount; i++)
         {
