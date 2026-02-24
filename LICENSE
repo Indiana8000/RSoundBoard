@@ -1,0 +1,56 @@
+# Proprietary License
+
+**Copyright (c) 2024 RSoundBoard Project. All rights reserved.**
+
+## Terms and Conditions
+
+### Permitted Use
+
+This software and associated documentation files (the "Software") are provided under a proprietary license with the following permissions:
+
+✅ **PERMITTED:**
+- Personal use
+- Commercial use (integration into business operations, workflows, streams, etc.)
+- Modification for personal or internal business use
+- Distribution of modified versions for non-commercial purposes
+- Use in commercial environments (e.g., business, streaming, content creation)
+
+❌ **PROHIBITED:**
+- Selling, licensing, or sublicensing the Software or derivatives for monetary gain
+- Direct commercialization (charging money for the Software itself or access to it)
+- Offering the Software or derivatives as a paid service
+- Redistributing the Software or derivatives in exchange for payment
+- Using the Software as the primary product in a commercial offering
+
+### Clarification of Commercial Use
+
+You MAY use this Software:
+- As a tool in your business operations
+- For streaming, content creation, or entertainment (even if monetized)
+- In commercial productions, events, or broadcasts
+- As part of internal business infrastructure
+
+You MAY NOT:
+- Sell the Software itself or modified versions
+- Charge users for access to the Software or its features
+- Bundle the Software in a paid product offering
+- Create a paid SaaS (Software as a Service) based on this Software
+
+### Attribution
+
+When redistributing or publicly displaying the Software, you must:
+- Retain this license notice
+- Include attribution to the original RSoundBoard project
+- Clearly indicate any modifications made
+
+### Disclaimer
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT, OR OTHERWISE, ARISING FROM, OUT OF, OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+### AI Training Restriction
+
+This Software is subject to additional restrictions regarding use in AI/ML training. See [LICENSE-AI-RESTRICTION](LICENSE-AI-RESTRICTION) for complete terms.
+
+---
+
+**For questions or commercial licensing inquiries, please open an issue on the GitHub repository.**

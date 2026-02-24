@@ -368,7 +368,14 @@ Contributions are welcome! Please follow these guidelines:
 
 ## 📄 License
 
-This project is open source. See the repository for license details.
+This project is licensed under a **proprietary license** that allows:
+- ✅ Free personal and commercial use (integration, streaming, business operations)
+- ✅ Modification and redistribution (non-commercial)
+- ❌ Direct monetization (selling the software or charging for access)
+
+See the [LICENSE](LICENSE) file for complete terms and conditions.
+
+**AI Training Restriction**: This codebase may NOT be used for AI/ML training. See [LICENSE-AI-RESTRICTION](LICENSE-AI-RESTRICTION) for details.
 
 ## 🙏 Acknowledgments
 
