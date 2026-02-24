@@ -131,6 +131,11 @@ RSoundBoard has **no authentication** and is designed for use on **trusted local
 - **Mobile Bookmark**: Save the web interface URL as a home screen bookmark on your phone
 - **Wireless Control**: Perfect for streamers who want soundboard control away from the PC
 
+## 🖼 Screenshots
+
+![Main Management Window](Screenshots_App_.png)
+![Web Interface](Screenshots_Web.png)
+
 ---
 
 # 👨‍💻 Developer Documentation
