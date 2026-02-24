@@ -11,8 +11,12 @@ public class ButtonRepository
 
     public ButtonRepository()
     {
-        var exeDirectory = AppContext.BaseDirectory;
-        _dataFilePath = Path.Combine(exeDirectory, "soundboard_data.json");
+        var appDataFolder = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+            "RSoundBoard");
+
+        Directory.CreateDirectory(appDataFolder);
+        _dataFilePath = Path.Combine(appDataFolder, "soundboard_data.json");
         LoadData();
     }
 
