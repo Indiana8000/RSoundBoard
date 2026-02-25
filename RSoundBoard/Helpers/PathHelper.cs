@@ -34,4 +34,17 @@ public static class PathHelper
 
         return filePath;
     }
+
+    public static string NormalizePath(string filePath)
+    {
+        try
+        {
+            var fullPath = GetFullPath(filePath);
+            return Path.GetFullPath(fullPath).ToLowerInvariant();
+        }
+        catch
+        {
+            return filePath.ToLowerInvariant();
+        }
+    }
 }

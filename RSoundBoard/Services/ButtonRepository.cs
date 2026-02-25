@@ -158,4 +158,20 @@ public class ButtonRepository
             _lock.Release();
         }
     }
+
+    public async Task<bool> FilePathExistsAsync(string filePath, Guid? excludeButtonId = null)
+    {
+        await _lock.WaitAsync();
+        try
+        {
+            var normalizedPath = PathHelper.NormalizePath(filePath);
+            return _buttons.Any(b => 
+                (excludeButtonId == null || b.Id != excludeButtonId.Value) &&
+                PathHelper.NormalizePath(b.FilePath) == normalizedPath);
+        }
+        finally
+        {
+            _lock.Release();
+        }
+    }
 }

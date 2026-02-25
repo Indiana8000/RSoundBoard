@@ -588,6 +588,8 @@ public class MainForm : Form
         if (e.Data?.GetData(DataFormats.FileDrop) is string[] files)
         {
             var defaultGroup = "Default";
+            var addedCount = 0;
+            var skippedCount = 0;
 
             foreach (var filePath in files)
             {
@@ -595,6 +597,15 @@ public class MainForm : Form
                 var extension = Path.GetExtension(filePath).ToLower();
                 if (extension == ".wav" || extension == ".mp3" || extension == ".ogg" || extension == ".flac")
                 {
+                    var relativePath = PathHelper.ConvertToRelativePathIfPossible(filePath);
+
+                    // Check if file already exists
+                    if (await _repository.FilePathExistsAsync(relativePath))
+                    {
+                        skippedCount++;
+                        continue;
+                    }
+
                     var fileName = Path.GetFileNameWithoutExtension(filePath);
 
                     // Determine the highest order number in the Default group
@@ -606,17 +617,27 @@ public class MainForm : Form
                     var newButton = new SoundButton
                     {
                         Label = fileName,
-                        FilePath = PathHelper.ConvertToRelativePathIfPossible(filePath),
+                        FilePath = relativePath,
                         Group = defaultGroup,
                         Order = maxOrder + 1
                     };
 
                     await _repository.AddAsync(newButton);
+                    addedCount++;
                 }
             }
 
             await NormalizeGroupOrders(defaultGroup);
             LoadButtons();
+
+            if (skippedCount > 0)
+            {
+                MessageBox.Show(
+                    $"Added {addedCount} file(s).\nSkipped {skippedCount} duplicate file(s).",
+                    "Information",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
+            }
         }
     }
 

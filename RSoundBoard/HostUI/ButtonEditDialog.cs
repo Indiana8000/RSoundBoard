@@ -156,7 +156,7 @@ public class ButtonEditDialog : Form
         }
     }
 
-    private void OkButton_Click(object? sender, EventArgs e)
+    private async void OkButton_Click(object? sender, EventArgs e)
     {
         if (string.IsNullOrWhiteSpace(_labelTextBox.Text))
         {
@@ -168,6 +168,14 @@ public class ButtonEditDialog : Form
         if (string.IsNullOrWhiteSpace(_filePathTextBox.Text))
         {
             MessageBox.Show("Please select a file.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            DialogResult = DialogResult.None;
+            return;
+        }
+
+        // Check if file path already exists (except for the current button being edited)
+        if (await _repository.FilePathExistsAsync(_filePathTextBox.Text, Button.Id == Guid.Empty ? null : Button.Id))
+        {
+            MessageBox.Show("This file has already been added to the soundboard.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             DialogResult = DialogResult.None;
             return;
         }
