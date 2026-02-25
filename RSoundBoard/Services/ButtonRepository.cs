@@ -1,4 +1,5 @@
 using System.Text.Json;
+using TestApp1.Helpers;
 using TestApp1.Models;
 
 namespace TestApp1.Services;
@@ -33,6 +34,18 @@ public class ButtonRepository
         {
             var json = File.ReadAllText(_dataFilePath);
             _buttons = JsonSerializer.Deserialize<List<SoundButton>>(json) ?? new List<SoundButton>();
+
+            foreach (var button in _buttons)
+            {
+                if (!string.IsNullOrEmpty(button.FilePath))
+                {
+                    var fullPath = PathHelper.GetFullPath(button.FilePath);
+                    if (!File.Exists(fullPath))
+                    {
+                        button.Group = "⁉ Missing Files";
+                    }
+                }
+            }
         }
         catch
         {

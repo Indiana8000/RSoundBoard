@@ -1,5 +1,6 @@
 using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
+using TestApp1.Helpers;
 
 namespace TestApp1.Services;
 
@@ -75,15 +76,6 @@ public class SoundService : IDisposable
         }
     }
 
-    private string GetFullPath(string filePath)
-    {
-        if (Path.IsPathRooted(filePath))
-            return filePath;
-
-        var exeDirectory = Path.GetDirectoryName(Application.ExecutablePath) ?? Environment.CurrentDirectory;
-        return Path.Combine(exeDirectory, filePath);
-    }
-
     private void StopMicrophone()
     {
         if (_waveIn != null)
@@ -103,7 +95,7 @@ public class SoundService : IDisposable
         {
             Stop();
 
-            var fullPath = GetFullPath(filePath);
+            var fullPath = PathHelper.GetFullPath(filePath);
             if (!File.Exists(fullPath))
                 return;
 
