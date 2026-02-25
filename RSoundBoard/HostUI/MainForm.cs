@@ -21,6 +21,7 @@ public class MainForm : Form
     private ComboBox _audioDeviceComboBox = null!;
     private Label _microphoneLabel = null!;
     private ComboBox _microphoneComboBox = null!;
+    private Button _stopPlaybackButton = null!;
     private Button _openWebButton = null!;
     private NotifyIcon _notifyIcon = null!;
     private ContextMenuStrip _trayMenu = null!;
@@ -91,7 +92,7 @@ public class MainForm : Form
         _buttonListView.Columns.Add("Order", 70);
 
         _buttonListView.ColumnClick += ButtonListView_ColumnClick;
-        _buttonListView.DoubleClick += ButtonListView_DoubleClick;
+        _buttonListView.ItemActivate += ButtonListView_ItemActivate;
         _buttonListView.DragEnter += ButtonListBox_DragEnter;
         _buttonListView.DragDrop += ButtonListBox_DragDrop;
 
@@ -145,32 +146,11 @@ public class MainForm : Form
         };
         _moveDownButton.Click += MoveDownButton_Click;
 
-        _audioDeviceLabel = new Label
-        {
-            Text = "Audio Output Device:",
-            Left = 620,
-            Top = 390,
-            Width = 160,
-            Height = 20,
-            Anchor = AnchorStyles.Bottom | AnchorStyles.Right
-        };
-
-        _audioDeviceComboBox = new ComboBox
-        {
-            Left = 620,
-            Top = 415,
-            Width = 160,
-            DropDownStyle = ComboBoxStyle.DropDownList,
-            Anchor = AnchorStyles.Bottom | AnchorStyles.Right
-        };
-        _audioDeviceComboBox.SelectedIndexChanged += AudioDeviceComboBox_SelectedIndexChanged;
-        LoadAudioDevices();
-
         _microphoneLabel = new Label
         {
             Text = "Microphone:",
             Left = 620,
-            Top = 340,
+            Top = 320,
             Width = 160,
             Height = 20,
             Anchor = AnchorStyles.Bottom | AnchorStyles.Right
@@ -179,13 +159,45 @@ public class MainForm : Form
         _microphoneComboBox = new ComboBox
         {
             Left = 620,
-            Top = 365,
+            Top = 340,
             Width = 160,
             DropDownStyle = ComboBoxStyle.DropDownList,
             Anchor = AnchorStyles.Bottom | AnchorStyles.Right
         };
         _microphoneComboBox.SelectedIndexChanged += MicrophoneComboBox_SelectedIndexChanged;
         LoadMicrophones();
+
+        _audioDeviceLabel = new Label
+        {
+            Text = "Audio Output Device:",
+            Left = 620,
+            Top = 370,
+            Width = 160,
+            Height = 20,
+            Anchor = AnchorStyles.Bottom | AnchorStyles.Right
+        };
+
+        _audioDeviceComboBox = new ComboBox
+        {
+            Left = 620,
+            Top = 390,
+            Width = 160,
+            DropDownStyle = ComboBoxStyle.DropDownList,
+            Anchor = AnchorStyles.Bottom | AnchorStyles.Right
+        };
+        _audioDeviceComboBox.SelectedIndexChanged += AudioDeviceComboBox_SelectedIndexChanged;
+        LoadAudioDevices();
+
+
+        _stopPlaybackButton = new Button
+        {
+            Text = "Stop Playback",
+            Left = 620,
+            Top = 440,
+            Width = 160,
+            Anchor = AnchorStyles.Bottom | AnchorStyles.Right
+        };
+        _stopPlaybackButton.Click += StopPlaybackButton_Click;
 
         _openWebButton = new Button
         {
@@ -208,6 +220,7 @@ public class MainForm : Form
         Controls.Add(_microphoneComboBox);
         Controls.Add(_audioDeviceLabel);
         Controls.Add(_audioDeviceComboBox);
+        Controls.Add(_stopPlaybackButton);
         Controls.Add(_openWebButton);
 
         FormClosing += MainForm_FormClosing;
@@ -442,6 +455,11 @@ public class MainForm : Form
         SelectButtonById(button.Id);
     }
 
+    private void StopPlaybackButton_Click(object? sender, EventArgs e)
+    {
+        _soundService.Stop();
+    }
+
     private void OpenWebButton_Click(object? sender, EventArgs e)
     {
         try
@@ -600,7 +618,7 @@ public class MainForm : Form
         }
     }
 
-    private async void ButtonListView_DoubleClick(object? sender, EventArgs e)
+    private async void ButtonListView_ItemActivate(object? sender, EventArgs e)
     {
         if (_buttonListView.SelectedItems.Count == 0 || _buttonListView.SelectedItems[0].Tag is not SoundButton button)
             return;
