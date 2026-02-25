@@ -22,6 +22,8 @@ public class MainForm : Form
     private Label _microphoneLabel = null!;
     private ComboBox _microphoneComboBox = null!;
     private Button _openWebButton = null!;
+    private NotifyIcon _notifyIcon = null!;
+    private ContextMenuStrip _trayMenu = null!;
     private int _sortColumn = 0;
     private bool _sortAscending = true;
     private readonly string[] _columnNames = { "Group", "Label", "File Path", "Order" };
@@ -32,6 +34,7 @@ public class MainForm : Form
         _soundService = soundService;
         _settingsService = settingsService;
         InitializeUI();
+        InitializeSystemTray();
         LoadButtons();
 
         var savedDevice = _settingsService.GetSelectedAudioDevice();
@@ -85,7 +88,7 @@ public class MainForm : Form
         _buttonListView.Columns.Add("Group", 100);
         _buttonListView.Columns.Add("Label", 150);
         _buttonListView.Columns.Add("File Path", 250);
-        _buttonListView.Columns.Add("Order", 80);
+        _buttonListView.Columns.Add("Order", 70);
 
         _buttonListView.ColumnClick += ButtonListView_ColumnClick;
         _buttonListView.DoubleClick += ButtonListView_DoubleClick;
@@ -206,6 +209,79 @@ public class MainForm : Form
         Controls.Add(_audioDeviceLabel);
         Controls.Add(_audioDeviceComboBox);
         Controls.Add(_openWebButton);
+
+        FormClosing += MainForm_FormClosing;
+        Resize += MainForm_Resize;
+    }
+
+    private void InitializeSystemTray()
+    {
+        _trayMenu = new ContextMenuStrip();
+
+        var openMenuItem = new ToolStripMenuItem("Open");
+        openMenuItem.Click += (s, e) => ShowMainForm();
+        _trayMenu.Items.Add(openMenuItem);
+
+        var exitMenuItem = new ToolStripMenuItem("Exit");
+        exitMenuItem.Click += (s, e) => ExitApplication();
+        _trayMenu.Items.Add(exitMenuItem);
+
+        _notifyIcon = new NotifyIcon
+        {
+            ContextMenuStrip = _trayMenu,
+            Text = "R Soundboard Manager",
+            Visible = false
+        };
+
+        try
+        {
+            var assembly = System.Reflection.Assembly.GetExecutingAssembly();
+            using var stream = assembly.GetManifestResourceStream("RSoundBoard.RSoundBoard.ico");
+            if (stream != null)
+            {
+                _notifyIcon.Icon = new Icon(stream);
+            }
+        }
+        catch
+        {
+            _notifyIcon.Icon = SystemIcons.Application;
+        }
+
+        _notifyIcon.DoubleClick += (s, e) => ShowMainForm();
+    }
+
+    private void MainForm_Resize(object? sender, EventArgs e)
+    {
+        if (WindowState == FormWindowState.Minimized)
+        {
+            Hide();
+            _notifyIcon.Visible = true;
+        }
+    }
+
+    private void MainForm_FormClosing(object? sender, FormClosingEventArgs e)
+    {
+        if (e.CloseReason == CloseReason.UserClosing)
+        {
+            e.Cancel = true;
+            Hide();
+            _notifyIcon.Visible = true;
+        }
+    }
+
+    private void ShowMainForm()
+    {
+        Show();
+        WindowState = FormWindowState.Normal;
+        Activate();
+        _notifyIcon.Visible = false;
+    }
+
+    private void ExitApplication()
+    {
+        _notifyIcon.Visible = false;
+        _notifyIcon.Dispose();
+        Application.Exit();
     }
 
     private async void LoadButtons()
