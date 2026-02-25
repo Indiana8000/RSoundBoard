@@ -12,6 +12,9 @@
     <ApplicationIcon>RSoundBoard.ico</ApplicationIcon>
     <IncludeAllContentForSelfExtract>true</IncludeAllContentForSelfExtract>
     <GenerateEmbeddedFilesManifest>true</GenerateEmbeddedFilesManifest>
+    <Version>1.1.0</Version>
+    <AssemblyVersion>1.1.0</AssemblyVersion>
+    <FileVersion>1.1.0</FileVersion>
   </PropertyGroup>
 
   <ItemGroup>
