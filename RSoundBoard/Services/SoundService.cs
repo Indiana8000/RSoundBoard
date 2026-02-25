@@ -95,6 +95,8 @@ public class SoundService : IDisposable
         {
             Stop();
 
+            await Task.Delay(50);
+
             var fullPath = PathHelper.GetFullPath(filePath);
             if (!File.Exists(fullPath))
                 return;
@@ -149,12 +151,39 @@ public class SoundService : IDisposable
 
     public void Stop()
     {
-        _wavePlayer?.Stop();
-        _wavePlayer?.Dispose();
-        _wavePlayer = null;
+        if (_wavePlayer != null)
+        {
+            try
+            {
+                _wavePlayer.Stop();
+            }
+            catch
+            {
+            }
 
-        _audioFileReader?.Dispose();
-        _audioFileReader = null;
+            try
+            {
+                _wavePlayer.Dispose();
+            }
+            catch
+            {
+            }
+
+            _wavePlayer = null;
+        }
+
+        if (_audioFileReader != null)
+        {
+            try
+            {
+                _audioFileReader.Dispose();
+            }
+            catch
+            {
+            }
+
+            _audioFileReader = null;
+        }
     }
 
     public void Dispose()
