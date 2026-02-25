@@ -365,6 +365,26 @@ public class MainForm : Form
         _notifyIcon.Visible = false;
     }
 
+    public void BringToFront()
+    {
+        if (InvokeRequired)
+        {
+            Invoke(BringToFront);
+            return;
+        }
+
+        if (!Visible || WindowState == FormWindowState.Minimized)
+        {
+            Show();
+            WindowState = FormWindowState.Normal;
+            _notifyIcon.Visible = false;
+        }
+
+        Activate();
+        BringToFront();
+        Focus();
+    }
+
     private void ExitApplication()
     {
         _notifyIcon.Visible = false;

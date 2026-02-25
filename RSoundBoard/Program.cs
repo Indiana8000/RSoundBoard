@@ -6,10 +6,22 @@ using System.Reflection;
 
 class Program
 {
+    private const string MutexName = "RSoundBoard_SingleInstance_Mutex";
+    private const string EventName = "RSoundBoard_ShowWindow_Event";
+
     [STAThread]
     static void Main(string[] args)
     {
         ApplicationConfiguration.Initialize();
+
+        using var mutex = new Mutex(true, MutexName, out bool isNewInstance);
+
+        if (!isNewInstance)
+        {
+            // Another instance is already running
+            SignalFirstInstance();
+            return;
+        }
 
         var builder = WebApplication.CreateBuilder(args);
 
@@ -81,10 +93,52 @@ class Program
 
         var webServerTask = Task.Run(() => app.Run());
 
-        Application.Run(new MainForm(repository, soundService, settingsService));
+        var mainForm = new MainForm(repository, soundService, settingsService);
+
+        // Start background thread to listen for show window events
+        var showWindowThread = new Thread(() => ListenForShowWindowEvent(mainForm))
+        {
+            IsBackground = true
+        };
+        showWindowThread.Start();
+
+        Application.Run(mainForm);
 
         soundService.Dispose();
         Environment.Exit(0);
+    }
+
+    private static void SignalFirstInstance()
+    {
+        try
+        {
+            using var eventWaitHandle = EventWaitHandle.OpenExisting(EventName);
+            eventWaitHandle.Set();
+        }
+        catch
+        {
+            // Event does not exist, first instance might not be ready yet
+        }
+    }
+
+    private static void ListenForShowWindowEvent(MainForm mainForm)
+    {
+        try
+        {
+            using var eventWaitHandle = new EventWaitHandle(false, EventResetMode.AutoReset, EventName);
+
+            while (true)
+            {
+                eventWaitHandle.WaitOne();
+
+                // Show the main form on the UI thread
+                mainForm.Invoke(() => mainForm.BringToFront());
+            }
+        }
+        catch
+        {
+            // Thread terminated
+        }
     }
 }
 
