@@ -365,7 +365,7 @@ public class MainForm : Form
         _notifyIcon.Visible = false;
     }
 
-    public void BringToFront()
+    public new void BringToFront()
     {
         if (InvokeRequired)
         {
@@ -381,7 +381,7 @@ public class MainForm : Form
         }
 
         Activate();
-        BringToFront();
+        base.BringToFront();
         Focus();
     }
 
