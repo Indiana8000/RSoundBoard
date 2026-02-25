@@ -75,6 +75,15 @@ public class SoundService : IDisposable
         }
     }
 
+    private string GetFullPath(string filePath)
+    {
+        if (Path.IsPathRooted(filePath))
+            return filePath;
+
+        var exeDirectory = Path.GetDirectoryName(Application.ExecutablePath) ?? Environment.CurrentDirectory;
+        return Path.Combine(exeDirectory, filePath);
+    }
+
     private void StopMicrophone()
     {
         if (_waveIn != null)
@@ -94,10 +103,11 @@ public class SoundService : IDisposable
         {
             Stop();
 
-            if (!File.Exists(filePath))
+            var fullPath = GetFullPath(filePath);
+            if (!File.Exists(fullPath))
                 return;
 
-            _audioFileReader = new AudioFileReader(filePath);
+            _audioFileReader = new AudioFileReader(fullPath);
 
             if (_deviceNumber.HasValue)
             {

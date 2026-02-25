@@ -107,7 +107,7 @@ public class ButtonEditDialog : Form
 
         if (openFileDialog.ShowDialog() == DialogResult.OK)
         {
-            _filePathTextBox.Text = openFileDialog.FileName;
+            _filePathTextBox.Text = ConvertToRelativePathIfPossible(openFileDialog.FileName);
         }
     }
 
@@ -128,7 +128,7 @@ public class ButtonEditDialog : Form
         if (e.Data?.GetData(DataFormats.FileDrop) is string[] files && files.Length > 0)
         {
             var filePath = files[0];
-            _filePathTextBox.Text = filePath;
+            _filePathTextBox.Text = ConvertToRelativePathIfPossible(filePath);
 
             // If label field is empty, set filename (without extension) as label
             if (string.IsNullOrWhiteSpace(_labelTextBox.Text))
@@ -136,6 +136,30 @@ public class ButtonEditDialog : Form
                 _labelTextBox.Text = Path.GetFileNameWithoutExtension(filePath);
             }
         }
+    }
+
+    private string ConvertToRelativePathIfPossible(string filePath)
+    {
+        try
+        {
+            var exeDirectory = Path.GetDirectoryName(Application.ExecutablePath);
+            if (string.IsNullOrEmpty(exeDirectory))
+                return filePath;
+
+            var fullFilePath = Path.GetFullPath(filePath);
+            var fullExePath = Path.GetFullPath(exeDirectory);
+
+            if (fullFilePath.StartsWith(fullExePath, StringComparison.OrdinalIgnoreCase))
+            {
+                return Path.GetRelativePath(fullExePath, fullFilePath);
+            }
+        }
+        catch
+        {
+            // If any error occurs, return original path
+        }
+
+        return filePath;
     }
 
     private void OkButton_Click(object? sender, EventArgs e)
