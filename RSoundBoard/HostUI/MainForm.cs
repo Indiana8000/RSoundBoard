@@ -430,7 +430,7 @@ public class MainForm : Form
             Group = defaultGroup
         };
 
-        using var dialog = new ButtonEditDialog(newButton);
+        using var dialog = new ButtonEditDialog(_repository, newButton);
         if (dialog.ShowDialog() == DialogResult.OK)
         {
             // Normalize the group after adding
@@ -447,7 +447,7 @@ public class MainForm : Form
 
         var oldGroup = button.Group;
 
-        using var dialog = new ButtonEditDialog(button);
+        using var dialog = new ButtonEditDialog(_repository, button);
         if (dialog.ShowDialog() == DialogResult.OK)
         {
             var editedButton = dialog.Button;

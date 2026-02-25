@@ -1,5 +1,6 @@
 using TestApp1.Helpers;
 using TestApp1.Models;
+using TestApp1.Services;
 
 namespace TestApp1.HostUI;
 
@@ -8,15 +9,17 @@ public class ButtonEditDialog : Form
     private TextBox _labelTextBox = null!;
     private TextBox _filePathTextBox = null!;
     private Button _browseButton = null!;
-    private TextBox _groupTextBox = null!;
+    private ComboBox _groupComboBox = null!;
     private NumericUpDown _orderNumeric = null!;
     private Button _okButton = null!;
     private Button _cancelButton = null!;
+    private readonly ButtonRepository _repository;
 
     public SoundButton Button { get; private set; }
 
-    public ButtonEditDialog(SoundButton? existingButton = null)
+    public ButtonEditDialog(ButtonRepository repository, SoundButton? existingButton = null)
     {
+        _repository = repository;
         Button = existingButton != null
             ? new SoundButton
             {
@@ -53,7 +56,13 @@ public class ButtonEditDialog : Form
         _browseButton.Click += BrowseButton_Click;
 
         var groupLabel = new Label { Text = "Group:", Left = 10, Top = 100, Width = 100 };
-        _groupTextBox = new TextBox { Left = 120, Top = 97, Width = 350 };
+        _groupComboBox = new ComboBox 
+        { 
+            Left = 120, 
+            Top = 97, 
+            Width = 350,
+            DropDownStyle = ComboBoxStyle.DropDown
+        };
 
         var orderLabel = new Label { Text = "Order:", Left = 10, Top = 140, Width = 100 };
         _orderNumeric = new NumericUpDown { Left = 120, Top = 137, Width = 100, Minimum = 0, Maximum = 9999 };
@@ -81,7 +90,7 @@ public class ButtonEditDialog : Form
         {
             labelLabel, _labelTextBox,
             fileLabel, _filePathTextBox, _browseButton,
-            groupLabel, _groupTextBox,
+            groupLabel, _groupComboBox,
             orderLabel, _orderNumeric,
             _okButton, _cancelButton
         });
@@ -90,12 +99,20 @@ public class ButtonEditDialog : Form
         CancelButton = _cancelButton;
     }
 
-    private void LoadData()
+    private async void LoadData()
     {
         _labelTextBox.Text = Button.Label;
         _filePathTextBox.Text = Button.FilePath;
-        _groupTextBox.Text = Button.Group;
         _orderNumeric.Value = Button.Order;
+
+        var existingGroups = await _repository.GetAllGroupsAsync();
+        _groupComboBox.Items.Clear();
+        foreach (var group in existingGroups)
+        {
+            _groupComboBox.Items.Add(group);
+        }
+
+        _groupComboBox.Text = Button.Group;
     }
 
     private void BrowseButton_Click(object? sender, EventArgs e)
@@ -157,7 +174,7 @@ public class ButtonEditDialog : Form
 
         Button.Label = _labelTextBox.Text;
         Button.FilePath = _filePathTextBox.Text;
-        Button.Group = string.IsNullOrWhiteSpace(_groupTextBox.Text) ? "Default" : _groupTextBox.Text;
+        Button.Group = string.IsNullOrWhiteSpace(_groupComboBox.Text) ? "Default" : _groupComboBox.Text;
         Button.Order = (int)_orderNumeric.Value;
     }
 }

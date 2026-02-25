@@ -140,4 +140,22 @@ public class ButtonRepository
             _lock.Release();
         }
     }
+
+    public async Task<List<string>> GetAllGroupsAsync()
+    {
+        await _lock.WaitAsync();
+        try
+        {
+            return _buttons
+                .Select(b => b.Group)
+                .Where(g => !string.IsNullOrWhiteSpace(g))
+                .Distinct()
+                .OrderBy(g => g)
+                .ToList();
+        }
+        finally
+        {
+            _lock.Release();
+        }
+    }
 }
