@@ -276,9 +276,84 @@ public class MainForm : Form
     {
         if (e.CloseReason == CloseReason.UserClosing)
         {
-            e.Cancel = true;
-            Hide();
-            _notifyIcon.Visible = true;
+            using var dialog = new Form
+            {
+                Text = "Close Application",
+                Width = 400,
+                Height = 180,
+                FormBorderStyle = FormBorderStyle.FixedDialog,
+                StartPosition = FormStartPosition.CenterParent,
+                MinimizeBox = false,
+                MaximizeBox = false
+            };
+
+            var label = new Label
+            {
+                Text = "What would you like to do?",
+                Left = 20,
+                Top = 20,
+                Width = 360,
+                Height = 30,
+                Font = new Font(dialog.Font.FontFamily, 10, FontStyle.Regular)
+            };
+
+            var minimizeButton = new Button
+            {
+                Text = "Minimize to System Tray",
+                Left = 20,
+                Top = 60,
+                Width = 340,
+                Height = 30,
+                DialogResult = DialogResult.Yes
+            };
+
+            var exitButton = new Button
+            {
+                Text = "Exit Application",
+                Left = 20,
+                Top = 95,
+                Width = 165,
+                Height = 30,
+                DialogResult = DialogResult.No
+            };
+
+            var cancelButton = new Button
+            {
+                Text = "Cancel",
+                Left = 195,
+                Top = 95,
+                Width = 165,
+                Height = 30,
+                DialogResult = DialogResult.Cancel
+            };
+
+            dialog.Controls.Add(label);
+            dialog.Controls.Add(minimizeButton);
+            dialog.Controls.Add(exitButton);
+            dialog.Controls.Add(cancelButton);
+            dialog.AcceptButton = minimizeButton;
+            dialog.CancelButton = cancelButton;
+
+            var result = dialog.ShowDialog(this);
+
+            if (result == DialogResult.Yes)
+            {
+                // Minimize to system tray
+                e.Cancel = true;
+                Hide();
+                _notifyIcon.Visible = true;
+            }
+            else if (result == DialogResult.No)
+            {
+                // Exit application
+                _notifyIcon.Visible = false;
+                _notifyIcon.Dispose();
+            }
+            else
+            {
+                // Cancel - stay open
+                e.Cancel = true;
+            }
         }
     }
 
