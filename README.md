@@ -2,6 +2,8 @@
 
 A network-enabled soundboard application for Windows with web interface and virtual audio cable integration.
 
+<div style="text-align:center"><img src="RSoundBoard/RSoundBoard.ico" /></div>
+
 ---
 
 # 📱 User Guide
