@@ -93,55 +93,80 @@ public class SoundService : IDisposable
         await _lock.WaitAsync();
         try
         {
-            Stop();
-
-            await Task.Delay(50);
-
             var fullPath = PathHelper.GetFullPath(filePath);
             if (!File.Exists(fullPath))
                 return;
 
-            _audioFileReader = new AudioFileReader(fullPath);
+            const int maxRetries = 3;
+            Exception? lastException = null;
 
-            if (_deviceNumber.HasValue)
+            for (int attempt = 0; attempt < maxRetries; attempt++)
             {
-                _wavePlayer = new WaveOutEvent { DeviceNumber = _deviceNumber.Value };
-            }
-            else
-            {
-                _wavePlayer = new WaveOutEvent();
-            }
-
-            if (_mixer != null && _microphoneDeviceNumber.HasValue)
-            {
-                var fileSampleProvider = _audioFileReader.ToSampleProvider();
-
-                // Ensure the file sample provider matches the mixer's format
-                if (fileSampleProvider.WaveFormat.SampleRate != _mixer.WaveFormat.SampleRate)
+                try
                 {
-                    fileSampleProvider = new WdlResamplingSampleProvider(fileSampleProvider, _mixer.WaveFormat.SampleRate);
-                }
+                    Stop();
+                    await Task.Delay(attempt == 0 ? 50 : 100 * attempt);
 
-                if (fileSampleProvider.WaveFormat.Channels == 1 && _mixer.WaveFormat.Channels == 2)
+                    _audioFileReader = new AudioFileReader(fullPath);
+
+                    if (_deviceNumber.HasValue)
+                    {
+                        _wavePlayer = new WaveOutEvent { DeviceNumber = _deviceNumber.Value };
+                    }
+                    else
+                    {
+                        _wavePlayer = new WaveOutEvent();
+                    }
+
+                    if (_mixer != null && _microphoneDeviceNumber.HasValue)
+                    {
+                        var fileSampleProvider = _audioFileReader.ToSampleProvider();
+
+                        if (fileSampleProvider.WaveFormat.SampleRate != _mixer.WaveFormat.SampleRate)
+                        {
+                            fileSampleProvider = new WdlResamplingSampleProvider(fileSampleProvider, _mixer.WaveFormat.SampleRate);
+                        }
+
+                        if (fileSampleProvider.WaveFormat.Channels == 1 && _mixer.WaveFormat.Channels == 2)
+                        {
+                            fileSampleProvider = new MonoToStereoSampleProvider(fileSampleProvider);
+                        }
+
+                        if (_mixer.MixerInputs.Count() > 1)
+                        {
+                            _mixer.RemoveMixerInput(_mixer.MixerInputs.First());
+                        }
+
+                        _mixer.AddMixerInput(fileSampleProvider);
+
+                        _wavePlayer.Init(_mixer);
+                    }
+                    else
+                    {
+                        _wavePlayer.Init(_audioFileReader);
+                    }
+
+                    _wavePlayer.Play();
+                    return;
+                }
+                catch (Exception ex) when (ex.Message.Contains("Already Allocated") && attempt < maxRetries - 1)
                 {
-                    fileSampleProvider = new MonoToStereoSampleProvider(fileSampleProvider);
+                    lastException = ex;
+                    Stop();
+                    await Task.Delay(150);
                 }
-
-                if (_mixer.MixerInputs.Count() > 1)
-                {
-                    _mixer.RemoveMixerInput(_mixer.MixerInputs.First());
-                }
-
-                _mixer.AddMixerInput(fileSampleProvider);
-
-                _wavePlayer.Init(_mixer);
             }
-            else
+
+            Stop();
+            if (lastException != null)
             {
-                _wavePlayer.Init(_audioFileReader);
+                throw lastException;
             }
-
-            _wavePlayer.Play();
+        }
+        catch
+        {
+            Stop();
+            throw;
         }
         finally
         {
