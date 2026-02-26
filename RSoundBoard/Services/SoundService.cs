@@ -14,6 +14,7 @@ public class SoundService : IDisposable
     private BufferedWaveProvider? _microphoneBuffer;
     private MixingSampleProvider? _mixer;
     private int? _microphoneDeviceNumber = null;
+    private IWavePlayer? _microphonePlayer;
 
     public void SetOutputDevice(int? deviceNumber)
     {
@@ -37,12 +38,13 @@ public class SoundService : IDisposable
                 _waveIn = new WaveInEvent
                 {
                     DeviceNumber = _microphoneDeviceNumber.Value,
-                    WaveFormat = new WaveFormat(44100, 16, 1)
+                    WaveFormat = new WaveFormat(44100, 16, 1),
+                    BufferMilliseconds = 20
                 };
 
                 _microphoneBuffer = new BufferedWaveProvider(_waveIn.WaveFormat)
                 {
-                    BufferLength = 44100 * 2 * 5,
+                    BufferLength = (int)(44100 * 2 * 0.2),
                     DiscardOnBufferOverflow = true
                 };
 
@@ -68,6 +70,21 @@ public class SoundService : IDisposable
                 }
 
                 _mixer.AddMixerInput(microphoneSampleProvider);
+
+                if (_deviceNumber.HasValue)
+                {
+                    _microphonePlayer = new WaveOutEvent {
+                        DeviceNumber = _deviceNumber.Value,
+                        DesiredLatency = 125
+                    };
+                }
+                else
+                {
+                    _microphonePlayer = new WaveOutEvent();
+                }
+
+                _microphonePlayer.Init(_mixer);
+                _microphonePlayer.Play();
             }
             catch
             {
@@ -78,6 +95,27 @@ public class SoundService : IDisposable
 
     private void StopMicrophone()
     {
+        if (_microphonePlayer != null)
+        {
+            try
+            {
+                _microphonePlayer.Stop();
+            }
+            catch
+            {
+            }
+
+            try
+            {
+                _microphonePlayer.Dispose();
+            }
+            catch
+            {
+            }
+
+            _microphonePlayer = null;
+        }
+
         if (_waveIn != null)
         {
             _waveIn.StopRecording();
@@ -132,9 +170,10 @@ public class SoundService : IDisposable
                             fileSampleProvider = new MonoToStereoSampleProvider(fileSampleProvider);
                         }
 
-                        if (_mixer.MixerInputs.Count() > 1)
+                        var existingFileInput = _mixer.MixerInputs.Skip(1).FirstOrDefault();
+                        if (existingFileInput != null)
                         {
-                            _mixer.RemoveMixerInput(_mixer.MixerInputs.First());
+                            _mixer.RemoveMixerInput(existingFileInput);
                         }
 
                         _mixer.AddMixerInput(fileSampleProvider);
