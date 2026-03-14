@@ -595,7 +595,7 @@ public class MainForm : Form
             {
                 // Only process audio files
                 var extension = Path.GetExtension(filePath).ToLower();
-                if (extension == ".wav" || extension == ".mp3" || extension == ".ogg" || extension == ".flac")
+                if (extension == ".wav" || extension == ".mp3" || extension == ".ogg" || extension == ".flac" || extension == ".mp4" || extension == ".m4a")
                 {
                     var relativePath = PathHelper.ConvertToRelativePathIfPossible(filePath);
 

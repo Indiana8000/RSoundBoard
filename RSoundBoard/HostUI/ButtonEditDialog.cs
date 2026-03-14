@@ -119,7 +119,7 @@ public class ButtonEditDialog : Form
     {
         using var openFileDialog = new OpenFileDialog
         {
-            Filter = "Audio Files|*.wav;*.mp3|All Files|*.*",
+            Filter = "Audio Files|*.wav;*.mp3;*.ogg;*.flac;*.mp4;*.m4a|All Files|*.*",
             Title = "Select Sound File"
         };
 
